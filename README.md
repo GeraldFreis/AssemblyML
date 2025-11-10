@@ -16,4 +16,12 @@ textToRead.txt
 ### Step 2:
 Now I learn how to sum up numbers, that are written in a text file
 Completed in Step2-summingNumbers
-
+To use the program type:
+```
+./summingNumbers
+```
+and when prompted (for example), enter
+```
+example1.csv
+```
+Or create a csv file with numbers separated by commas.
