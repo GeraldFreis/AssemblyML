@@ -16,6 +16,9 @@ lenResultB equ $ - resultB
 newLine db 10
 lenNewLine equ 1
 
+dot db ".", 0
+lenDot equ 1
+
 section .bss
 fileName resb 64
 fileDesc resd 1
@@ -27,6 +30,8 @@ sumY resd 1
 sumProdXY resd 1
 sumXSquared resd 1
 linesRead resd 1
+
+tempVar resd 1
 
 currentX resd 1
 currentY resd 1
@@ -198,8 +203,9 @@ _start:
     mov edx, [sumY]
     imul ecx, edx               ; Σx * Σy
     sub eax, ecx                ; numerator a
+    imul eax, 1000
     mov [aValue], eax
-
+    
     mov eax, [linesRead]
     mov ebx, [sumXSquared]
     imul eax, ebx               ; n * Σx²
@@ -214,11 +220,12 @@ _start:
     mov [aValue], eax
 
     ; b = (Σy - a*Σx) / n
-    mov eax, [sumX]
-    imul eax, [aValue]
-    mov ebx, [sumY]
-    sub ebx, eax
-    mov eax, ebx
+    mov ebx, [sumX]
+    imul ebx, [aValue]
+
+    mov eax, [sumY]
+    imul eax, 1000
+    sub eax, ebx
     cdq
     idiv dword [linesRead]
     mov [bValue], eax
@@ -226,12 +233,29 @@ _start:
 
 .print_results:
     ; print "a = "
+
     mov eax, 4
     mov ebx, 1
     mov ecx, resultA
     mov edx, lenResultA
     int 0x80
 
+    mov eax, [aValue]
+    mov ebx, 1000
+    cdq
+    idiv ebx
+    call .print_number
+
+    ; printing a . 
+    mov [aValue], edx 			; saving the remainder
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, dot
+    mov edx, lenDot
+    int 0x80
+
+    ; now I want to print the remainder
     mov eax, [aValue]
     call .print_number
 
@@ -250,7 +274,26 @@ _start:
     int 0x80
 
     mov eax, [bValue]
+    mov ebx, 1000
+    cdq
+    idiv ebx
+    mov [tempVar], edx
+
     call .print_number
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, dot
+    mov edx, lenDot
+    int 0x80
+
+    ; now printing remainder
+    mov eax, [tempVar]
+    cmp eax, 0
+    jge .frac_pos
+    neg eax
+    .frac_pos:
+    	call .print_number
 
     ; newline
     mov eax, 4
